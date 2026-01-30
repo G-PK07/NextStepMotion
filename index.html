@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NextStepMotion (ระบบประเมินและฟื้นฟู WMFT)</title>
+    <title>NextStepMotion (Rehab & Office Syndrome)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,151 +14,59 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- MediaPipe Libraries (Use Latest Stable) -->
+    <!-- MediaPipe Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
 
     <style>
-        body {
-            font-family: 'Prompt', sans-serif;
-            background-color: #111827;
-            overscroll-behavior-y: none;
-            height: 100dvh;
-            color: white;
-            overflow: hidden;
-        }
+        body { font-family: 'Prompt', sans-serif; background-color: #111827; overscroll-behavior-y: none; height: 100dvh; color: white; overflow: hidden; }
+        #dashboard-screen { -webkit-overflow-scrolling: touch; scroll-behavior: smooth; height: 100%; overflow-y: auto; padding-bottom: 5rem; }
         
-        #dashboard-screen {
-            -webkit-overflow-scrolling: touch;
-            scroll-behavior: smooth;
-            height: 100%;
-            overflow-y: auto;
-            padding-bottom: 5rem; /* Ensure space at bottom */
-        }
-
-        #video-wrapper {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #000;
-        }
-
-        #output-canvas {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain; 
-        }
-
-        #grid-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            z-index: 10;
-            pointer-events: none;
-            opacity: 0; 
-            transition: opacity 0.3s ease;
-        }
-
-        #grid-overlay.visible {
-            opacity: 1;
-        }
-
-        .grid-cell {
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            font-weight: bold;
-            color: rgba(255, 255, 255, 0.3);
-            position: relative;
-            transition: all 0.2s ease;
-        }
-
-        .grid-cell::after {
-            content: attr(data-label);
-            position: absolute;
-        }
-
-        .grid-cell.target {
-            background-color: rgba(239, 68, 68, 0.15);
-            border: 3px solid #ef4444;
-            color: white;
-            animation: pulse-target 1.5s infinite;
-        }
-
-        .grid-cell.near {
-            border: 3px dashed #fbbf24 !important;
-            background-color: rgba(234, 179, 8, 0.25) !important;
-            box-shadow: 0 0 15px rgba(251, 191, 36, 0.3);
-        }
-
-        .grid-cell.hovering {
-            background-color: rgba(234, 179, 8, 0.6) !important;
-            border: 3px solid #fbbf24 !important;
-            transform: scale(0.98);
-        }
-
-        .grid-cell.success {
-            background-color: rgba(34, 197, 94, 0.8) !important;
-            border-color: #22c55e !important;
-            transform: scale(1.05);
-            z-index: 20;
-        }
-
-        @keyframes pulse-target {
-            0% { box-shadow: inset 0 0 10px rgba(239, 68, 68, 0.2); }
-            50% { box-shadow: inset 0 0 30px rgba(239, 68, 68, 0.6); }
-            100% { box-shadow: inset 0 0 10px rgba(239, 68, 68, 0.2); }
-        }
+        #video-wrapper { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
         
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(8px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 999;
-        }
-
         #input-video { display: none; }
-        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 20px); }
-        .bar-fill { transition: height 1s ease-out; }
-        .bar-active { border: 2px solid white; opacity: 1 !important; transform: scale(1.1); }
-        
-        /* Toggle Switch CSS Fixed */
-        .toggle-checkbox:checked + .toggle-track {
-            background-color: #10B981; 
-        }
-        .toggle-checkbox:checked ~ .toggle-dot {
-            transform: translateX(100%);
-        }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        #output-canvas { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
 
-        /* Custom Scrollbar for Modal */
-        .custom-scroll::-webkit-scrollbar {
-            width: 6px;
+        /* Grid Overlay */
+        #grid-overlay { 
+            position: absolute; 
+            left: 50%; 
+            top: 50%; 
+            transform: translate(-50%, -50%); 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            grid-template-rows: repeat(3, 1fr); 
+            z-index: 10; 
+            pointer-events: none; 
+            opacity: 0; 
+            transition: opacity 0.3s ease; 
         }
-        .custom-scroll::-webkit-scrollbar-track {
-            background: #374151; 
-            border-radius: 4px;
-        }
-        .custom-scroll::-webkit-scrollbar-thumb {
-            background: #6B7280; 
-            border-radius: 4px;
+        #grid-overlay.visible { opacity: 1; }
+        
+        .grid-cell { border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold; color: rgba(255, 255, 255, 0.3); position: relative; transition: all 0.2s ease; }
+        .grid-cell.target { background-color: rgba(239, 68, 68, 0.15); border: 3px solid #ef4444; color: white; animation: pulse-target 1.5s infinite; }
+        .grid-cell.near { border: 3px dashed #fbbf24 !important; background-color: rgba(234, 179, 8, 0.25) !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); }
+        .grid-cell.hovering { background-color: rgba(234, 179, 8, 0.6) !important; border: 3px solid #fbbf24 !important; transform: scale(0.98); }
+        .grid-cell.success { background-color: rgba(34, 197, 94, 0.8) !important; border-color: #22c55e !important; transform: scale(1.05); z-index: 20; }
+        
+        /* Shared UI Elements */
+        #office-ui { pointer-events: none; }
+        #hold-progress-container { pointer-events: none; }
+
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .slide-in { animation: slideInRight 0.5s ease-out forwards; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 999; }
+        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 20px); }
+        .toggle-checkbox:checked + .toggle-track { background-color: #10B981; }
+        .toggle-checkbox:checked ~ .toggle-dot { transform: translateX(100%); }
+        
+        /* Video Loading Status (Non-blocking) */
+        #video-status {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 5; text-align: center; pointer-events: none;
         }
     </style>
 </head>
@@ -167,94 +75,64 @@
     <!-- 1. LOGIN SCREEN -->
     <div id="login-screen" class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-8 bg-gray-900 w-full h-full overflow-y-auto">
         <div class="mb-4 text-green-500">
-            <i class="fas fa-universal-access text-7xl animate-pulse"></i>
+            <i class="fas fa-heartbeat text-7xl animate-pulse"></i>
         </div>
         <div>
             <h1 class="text-4xl font-bold text-white mb-2">NextStepMotion</h1>
-            <p class="text-gray-400">ระบบประเมินและฟื้นฟู (WMFT + ROM)</p>
+            <p class="text-gray-400">ระบบประเมินฟื้นฟู และ ออฟฟิศซินโดรม</p>
         </div>
         <button id="btn-demo-start" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-10 rounded-full shadow-lg flex items-center gap-3 transition transform hover:scale-105 text-xl">
             <i class="fas fa-play"></i> เริ่มใช้งาน
         </button>
+        <p id="ai-status" class="text-xs text-gray-500 mt-4 opacity-50">System Ready</p>
     </div>
 
     <!-- 2. DASHBOARD -->
     <div id="dashboard-screen" class="hidden flex-1 flex flex-col bg-gray-900 w-full h-full overflow-y-auto">
         <header class="bg-gray-800 p-4 shadow-md flex justify-between items-center border-b border-gray-700 sticky top-0 z-10">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center font-bold text-white">U</div>
+                <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white">U</div>
                 <div>
-                    <h2 class="font-bold text-white text-sm">ประวัติการฝึก</h2>
-                    <p class="text-xs text-gray-400">Wolf Motor Function Test</p>
+                    <h2 class="font-bold text-white text-sm">เมนูหลัก</h2>
+                    <p class="text-xs text-gray-400">เลือกโหมดการฝึก</p>
                 </div>
             </div>
             <div class="flex gap-3">
-                <!-- Info Button -->
-                <button id="btn-info" class="text-gray-400 hover:text-white p-2 relative z-20">
-                    <i class="fas fa-question-circle text-xl"></i>
-                </button>
-                <button id="btn-settings" class="text-gray-400 hover:text-white p-2 relative z-20">
-                    <i class="fas fa-cog text-xl"></i>
-                </button>
-                <button id="btn-logout" class="text-gray-400 hover:text-white p-2">
-                    <i class="fas fa-sign-out-alt text-xl"></i>
-                </button>
+                <button id="btn-settings" class="text-gray-400 hover:text-white p-2 relative z-20"><i class="fas fa-cog text-xl"></i></button>
+                <button id="btn-logout" class="text-gray-400 hover:text-white p-2"><i class="fas fa-sign-out-alt text-xl"></i></button>
             </div>
         </header>
 
         <div class="p-6 flex-1 flex flex-col space-y-6">
-            <div class="bg-gradient-to-r from-green-800 to-emerald-900 p-6 rounded-2xl shadow-lg border border-green-700 text-center">
-                <h3 class="text-xl font-bold text-white mb-2">เริ่มการประเมินใหม่</h3>
-                <p class="text-green-200 text-sm mb-4">ทดสอบความคล่องตัว + วัดองศาข้อต่อ</p>
-                <button id="btn-start-game" class="bg-white text-green-900 font-bold py-3 px-8 rounded-full shadow w-full hover:bg-gray-100 transition">
-                    <i class="fas fa-play mr-2"></i> เริ่มทดสอบ
-                </button>
+            
+            <!-- Mode Selection -->
+            <div class="grid grid-cols-1 gap-4">
+                <!-- Stroke Mode -->
+                <div onclick="selectMode('stroke')" class="cursor-pointer bg-gradient-to-r from-green-800 to-emerald-900 p-6 rounded-2xl shadow-lg border border-green-700 hover:scale-[1.02] transition">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xl font-bold text-white"><i class="fas fa-universal-access mr-2"></i>ฟื้นฟูผู้ป่วย (Stroke)</h3>
+                        <span class="bg-green-600 text-xs px-2 py-1 rounded text-white">WMFT</span>
+                    </div>
+                    <p class="text-green-200 text-sm mb-4">ฝึกการเอื้อมแขนตามช่องตาราง พร้อมระบบเช็คความพร้อมก่อนฝึก</p>
+                    <button class="bg-white/10 text-white text-sm py-2 px-4 rounded-full w-full hover:bg-white/20">เลือกโหมดนี้</button>
+                </div>
+
+                <!-- Office Syndrome Mode -->
+                <div onclick="selectMode('office')" class="cursor-pointer bg-gradient-to-r from-orange-800 to-red-900 p-6 rounded-2xl shadow-lg border border-orange-700 hover:scale-[1.02] transition">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xl font-bold text-white"><i class="fas fa-chair mr-2"></i>ออฟฟิศซินโดรม</h3>
+                        <span class="bg-orange-600 text-xs px-2 py-1 rounded text-white">Stretching</span>
+                    </div>
+                    <p class="text-orange-200 text-sm mb-4">5 ท่ากายบริหาร แก้อาการปวดคอ บ่า ไหล่</p>
+                    <button class="bg-white/10 text-white text-sm py-2 px-4 rounded-full w-full hover:bg-white/20">เลือกโหมดนี้</button>
+                </div>
             </div>
 
+            <!-- Stats Section -->
             <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 shadow-lg">
-                <h3 class="font-bold text-white mb-4 flex items-center justify-between">
-                    <span class="flex items-center gap-2"><i class="fas fa-chart-line text-blue-400"></i> กราฟพัฒนาการ</span>
-                    <button id="btn-export" class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded">
-                        <i class="fas fa-download mr-1"></i> CSV
-                    </button>
-                </h3>
-                
-                <div id="chart-container" class="h-40 flex items-end justify-start gap-3 px-2 border-b border-gray-600 pb-2 overflow-x-auto touch-pan-x">
-                    <p class="text-center w-full text-gray-500 text-sm self-center">ยังไม่มีข้อมูลการฝึก</p>
-                </div>
-
-                <!-- Detail Box (Always visible if data exists) -->
-                <div id="chart-detail-box" class="mt-4 p-4 bg-gray-700/50 rounded-lg border border-gray-600 shadow-inner">
-                    <div id="detail-placeholder" class="text-center text-gray-400 py-2">
-                        <i class="fas fa-chart-bar mb-2"></i><br>
-                        แตะกราฟเพื่อดูรายละเอียด
-                    </div>
-                    
-                    <div id="detail-content" class="hidden animate-fade-in">
-                        <div class="flex justify-between items-center text-sm mb-2 pb-2 border-b border-gray-600">
-                            <span class="text-gray-300 font-bold">รายละเอียด</span>
-                            <span id="detail-date" class="text-white text-xs opacity-75"></span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 mt-2">
-                            <div>
-                                <p class="text-xs text-gray-400">คะแนน (ครั้ง)</p>
-                                <p id="detail-score" class="text-xl font-bold text-green-400">-</p>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-400">ผลประเมิน</p>
-                                <p id="detail-grade" class="text-lg font-bold text-yellow-400">-</p>
-                            </div>
-                        </div>
-                        <div class="mt-2 text-xs text-gray-400">
-                            <i class="far fa-clock mr-1"></i> เวลาเฉลี่ย: <span id="detail-time" class="text-white"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
-                <h3 class="font-bold text-white mb-4">ประวัติล่าสุด</h3>
+                <h3 class="font-bold text-white mb-4"><i class="fas fa-history text-blue-400 mr-2"></i>ประวัติล่าสุด</h3>
                 <div id="history-list" class="space-y-3 max-h-60 overflow-y-auto pr-1 pb-10">
+                    <p class="text-center text-gray-500 text-sm py-4">ยังไม่มีประวัติการฝึก</p>
                 </div>
             </div>
         </div>
@@ -264,30 +142,37 @@
     <div id="game-screen" class="hidden fixed inset-0 bg-black flex flex-col z-50">
         <!-- Top HUD -->
         <div class="absolute top-0 left-0 w-full p-4 flex justify-between items-start z-30 pointer-events-none">
+            <!-- Left -->
             <div class="bg-gray-900/80 backdrop-blur rounded-lg p-2 border border-gray-700 text-center min-w-[80px]">
-                <div class="text-[10px] text-gray-400">เวลา</div>
-                <div id="game-timer" class="text-3xl font-bold text-white font-mono">120</div>
+                <div id="hud-label-left" class="text-[10px] text-gray-400">เวลา</div>
+                <div id="game-timer" class="text-3xl font-bold text-white font-mono">0</div>
             </div>
             
-            <div class="flex flex-col items-center gap-2 max-w-[50%]">
-                <div id="instruction-text" class="text-xl font-bold text-white bg-green-600/90 px-4 py-2 rounded-full shadow-lg border-2 border-white backdrop-blur text-center leading-tight">
+            <!-- Center Instruction -->
+            <div class="flex flex-col items-center gap-2 max-w-[50%] md:max-w-[60%] z-50">
+                <div id="instruction-text" class="text-lg md:text-xl font-bold text-white bg-blue-600/90 px-6 py-2 rounded-full shadow-lg border-2 border-white backdrop-blur text-center leading-tight transition-all duration-300">
                     เตรียมตัว...
                 </div>
-                <!-- Status Indicators -->
-                <div class="flex flex-col gap-2 items-center w-full">
-                    <div id="hold-indicator" class="hidden text-sm font-bold text-black bg-yellow-400 px-4 py-1 rounded-full animate-pulse shadow-lg">
-                        <i class="fas fa-hand-paper mr-1"></i> ค้างไว้นิ่งๆ...
-                    </div>
-                    <!-- Big Encouragement Text -->
-                    <div id="encourage-indicator" class="hidden text-2xl font-bold text-white bg-blue-600/90 border-4 border-yellow-400 px-6 py-3 rounded-2xl shadow-2xl animate-bounce whitespace-nowrap z-50">
-                        <i class="fas fa-bullhorn mr-2"></i> อีกนิดเดียว!
-                    </div>
+                <!-- Feedback Text -->
+                <div id="feedback-text" class="hidden text-yellow-300 font-bold text-lg drop-shadow-md animate-bounce bg-black/50 px-3 py-1 rounded-lg">
+                    ค้างไว้!
                 </div>
             </div>
 
+            <!-- Right -->
             <div class="bg-gray-900/80 backdrop-blur rounded-lg p-2 border border-gray-700 text-center min-w-[80px]">
-                <div class="text-[10px] text-gray-400">คะแนน</div>
+                <div id="hud-label-right" class="text-[10px] text-gray-400">คะแนน</div>
                 <div id="game-score" class="text-3xl font-bold text-yellow-400">0</div>
+            </div>
+        </div>
+        
+        <!-- IMAGE GUIDE OVERLAY -->
+        <div id="pose-guide-box" class="hidden absolute top-24 right-4 w-48 md:w-72 bg-gray-800/95 backdrop-blur-md border-2 border-white/20 rounded-xl overflow-hidden shadow-2xl z-30 pointer-events-none transition-all duration-300">
+            <div class="relative w-full h-36 md:h-52 bg-black flex items-center justify-center overflow-hidden">
+                <img id="pose-guide-img" src="" alt="ท่าตัวอย่าง" class="w-full h-full object-contain" referrerpolicy="no-referrer">
+            </div>
+            <div class="p-3 bg-black/80 text-center border-t border-white/10">
+                <p id="pose-guide-name" class="text-sm font-bold text-white leading-tight">ท่าที่ 1</p>
             </div>
         </div>
 
@@ -295,76 +180,65 @@
         <div id="video-wrapper" class="flex-1 w-full relative">
             <video id="input-video" playsinline></video>
             <canvas id="output-canvas"></canvas>
-            <div id="grid-overlay">
-                <div class="grid-cell" data-index="0" data-label="1"></div>
-                <div class="grid-cell" data-index="1" data-label="2"></div>
-                <div class="grid-cell" data-index="2" data-label="3"></div>
-                <div class="grid-cell" data-index="3" data-label="4"></div>
-                <div class="grid-cell" data-index="4" data-label="5"></div>
-                <div class="grid-cell" data-index="5" data-label="6"></div>
-                <div class="grid-cell" data-index="6" data-label="7"></div>
-                <div class="grid-cell" data-index="7" data-label="8"></div>
-                <div class="grid-cell" data-index="8" data-label="9"></div>
-            </div>
             
+            <!-- Video Loading Status -->
+            <div id="video-status" class="text-white animate-pulse absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10">
+                <i class="fas fa-video mr-2"></i> กำลังเปิดกล้อง...
+            </div>
+
+            <!-- Stroke Grid -->
+            <div id="grid-overlay"></div>
+            
+            <!-- Progress UI (Shared for Warmup & Office) -->
+            <div id="office-ui" class="hidden absolute inset-0 flex flex-col items-center justify-end pb-32 pointer-events-none z-20">
+                <div id="hold-progress-container" class="opacity-0 transition-opacity duration-300 bg-gray-900/80 p-4 rounded-2xl border border-green-500/50 backdrop-blur-sm flex flex-col items-center shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+                    <p id="progress-status-text" class="text-green-400 font-bold mb-2 text-xl animate-pulse"><i class="fas fa-check-circle mr-2"></i>กำลังตรวจสอบ...</p>
+                    <div class="w-64 h-4 bg-gray-700 rounded-full overflow-hidden border border-gray-600">
+                        <div id="hold-bar" class="h-full bg-gradient-to-r from-green-400 to-green-600 w-0 transition-all duration-100 ease-linear relative"></div>
+                    </div>
+                </div>
+            </div>
+
             <div id="feedback-icon" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition-all duration-300 scale-50 z-40">
                 <i class="fas fa-check-circle text-8xl text-green-400 drop-shadow-[0_0_15px_rgba(74,222,128,0.8)]"></i>
             </div>
         </div>
 
-        <!-- Bottom Controls -->
-        <div class="fixed bottom-0 left-0 w-full flex justify-center gap-4 z-50 p-6 safe-area-bottom bg-gradient-to-t from-black/80 to-transparent">
-            <button id="btn-pause-game" class="bg-yellow-500 hover:bg-yellow-400 text-black px-8 py-3 rounded-full font-bold shadow-lg border-2 border-yellow-300 flex items-center gap-2 transition hover:scale-105 pointer-events-auto">
+        <!-- Bottom Controls (Fixed Position & Z-Index) -->
+        <div class="absolute bottom-0 left-0 w-full flex justify-center gap-4 z-[60] p-6 safe-area-bottom bg-gradient-to-t from-black/90 to-transparent pointer-events-none">
+            <button id="btn-pause-game" class="bg-yellow-500 hover:bg-yellow-400 text-black px-8 py-3 rounded-full font-bold shadow-lg border-2 border-yellow-300 flex items-center gap-2 transition hover:scale-105 pointer-events-auto cursor-pointer">
                 <i class="fas fa-pause"></i> พัก
             </button>
-            <button id="btn-stop-game" class="bg-red-600 hover:bg-red-500 text-white px-8 py-3 rounded-full font-bold shadow-lg border-2 border-red-400 flex items-center gap-2 transition hover:scale-105 pointer-events-auto">
+            <button id="btn-stop-game" class="bg-red-600 hover:bg-red-500 text-white px-8 py-3 rounded-full font-bold shadow-lg border-2 border-red-400 flex items-center gap-2 transition hover:scale-105 pointer-events-auto cursor-pointer">
                 <i class="fas fa-stop"></i> จบ
             </button>
         </div>
     </div>
 
-    <!-- GLOBAL OVERLAYS -->
-    
-    <!-- Info Modal -->
-    <div id="info-overlay" class="hidden modal-overlay">
-        <div class="bg-gray-800 p-6 rounded-2xl border border-gray-600 shadow-2xl max-w-md w-full mx-4 flex flex-col max-h-[80vh]">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-white"><i class="fas fa-info-circle mr-2 text-blue-400"></i>เกี่ยวกับ NextStepMotion</h2>
-                <button id="btn-close-info" class="text-gray-400 hover:text-white p-2"><i class="fas fa-times text-xl"></i></button>
-            </div>
-            <div class="overflow-y-auto pr-2 text-gray-300 text-sm space-y-4 custom-scroll">
-                <div>
-                    <h3 class="text-green-400 font-bold text-base mb-1">🎯 เป้าหมาย</h3>
-                    <p>NextStepMotion คือระบบเว็บแอปพลิเคชันเพื่อช่วยในการฟื้นฟูสมรรถภาพผู้ป่วยอัมพาตครึ่งซีก (Hemiplegia) โดยใช้ AI ตรวจจับการเคลื่อนไหวเพื่อฝึกการเอื้อมแขน (Reaching Task) ตามหลักการ Wolf Motor Function Test (WMFT)</p>
-                </div>
-                
-                <div>
-                    <h3 class="text-yellow-400 font-bold text-base mb-1">🎮 วิธีการใช้งาน</h3>
-                    <ol class="list-decimal pl-4 space-y-2">
-                        <li><strong>ตั้งกล้อง:</strong> วางโทรศัพท์หรือเว็บแคมห่างจากตัวประมาณ 1.5 - 2 เมตร ให้เห็นครึ่งตัวบนชัดเจน</li>
-                        <li><strong>เริ่มฝึก:</strong> กดปุ่ม "เริ่มทดสอบ" ระบบจะสุ่มช่องเป้าหมาย (สีแดง)</li>
-                        <li><strong>การเล่น:</strong> ขยับมือข้างที่ต้องการฝึกไปยังช่องเป้าหมาย
-                            <ul class="list-disc pl-4 mt-1 text-xs text-gray-400">
-                                <li>เมื่อมือเข้าใกล้ กรอบจะเป็นเส้นประสีเหลือง</li>
-                                <li>เมื่อมืออยู่ในช่อง ให้ <strong>"ค้างไว้"</strong> จนกว่าแถบสีเขียวจะเต็มหรือได้ยินเสียงเตือน</li>
-                            </ul>
-                        </li>
-                        <li><strong>จบการฝึก:</strong> ทำต่อเนื่องจนหมดเวลา หรือกดปุ่ม "จบ" เพื่อดูผลการประเมิน</li>
-                    </ol>
-                </div>
-
-                <div>
-                    <h3 class="text-blue-400 font-bold text-base mb-1">⚙️ การตั้งค่าเพิ่มเติม</h3>
-                    <p>สามารถกดปุ่มเฟืองเพื่อปรับแต่ง:</p>
-                    <ul class="list-disc pl-4 mt-1 text-xs">
-                        <li><strong>เวลาค้างมือ:</strong> ปรับให้เร็วขึ้นหรือง่ายขึ้นตามความสามารถ</li>
-                        <li><strong>ระยะเวลาฝึก:</strong> ตั้งแต่ 1 ถึง 3 นาที</li>
-                        <li><strong>เสียง:</strong> เปิด/ปิด เสียงพากย์และเอฟเฟกต์</li>
-                    </ul>
+    <!-- Settings Modal -->
+    <div id="settings-overlay" class="hidden modal-overlay">
+        <div class="bg-gray-800 p-6 rounded-2xl border border-gray-600 shadow-2xl max-w-sm w-full mx-4">
+            <h2 class="text-xl font-bold text-white mb-4"><i class="fas fa-sliders-h mr-2"></i>ตั้งค่า</h2>
+            <div class="mb-4">
+                <label class="block text-gray-400 text-sm mb-2">เวลาค้างมือ (วินาที)</label>
+                <input type="range" id="setting-hold" min="15" max="150" value="30" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
+                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>เร็ว (0.5s)</span>
+                    <span id="hold-val" class="text-yellow-400 font-bold">1.0s</span>
+                    <span>ช้า (5.0s)</span>
                 </div>
             </div>
-            <div class="mt-6 pt-4 border-t border-gray-700">
-                <button id="btn-close-info-bottom" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-bold transition">เข้าใจแล้ว</button>
+            <div class="mb-6">
+                <label class="block text-gray-400 text-sm mb-2">เวลาฝึก (นาที)</label>
+                <select id="setting-time" class="w-full bg-gray-700 text-white border border-gray-600 rounded p-2">
+                    <option value="60">1 นาที</option>
+                    <option value="120" selected>2 นาที</option>
+                    <option value="180">3 นาที</option>
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button id="btn-cancel-settings" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-2 rounded-lg">ยกเลิก</button>
+                <button id="btn-save-settings" class="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg">บันทึก</button>
             </div>
         </div>
     </div>
@@ -372,15 +246,32 @@
     <!-- Pause Overlay -->
     <div id="pause-overlay" class="hidden modal-overlay">
         <div class="text-center p-8 bg-gray-900/90 rounded-2xl border border-gray-700 shadow-2xl max-w-sm w-full mx-4">
-            <i class="fas fa-pause-circle text-6xl text-yellow-400 mb-4 animate-bounce"></i>
+            <i class="fas fa-pause-circle text-6xl text-yellow-400 mb-4"></i>
             <h2 class="text-3xl font-bold text-white mb-2">พักชั่วคราว</h2>
-            <button id="btn-resume" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-full shadow-lg text-lg mt-6 w-full">
-                ฝึกต่อ
-            </button>
+            <button id="btn-resume" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-full shadow-lg mt-6 w-full">ฝึกต่อ</button>
+            <button id="btn-exit-pause" class="bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-8 rounded-full shadow-lg mt-3 w-full">ออกจากการฝึก</button>
         </div>
     </div>
 
-    <!-- Exit Confirmation Modal -->
+    <!-- Summary Modal -->
+    <div id="summary-overlay" class="hidden modal-overlay">
+        <div class="bg-gray-800 rounded-2xl border border-gray-600 shadow-2xl max-w-sm w-full mx-4 overflow-hidden text-center p-6">
+            <i class="fas fa-trophy text-5xl text-yellow-400 animate-bounce mb-4"></i>
+            <h2 class="text-2xl font-bold text-white mb-2">สรุปผล</h2>
+            <p id="summary-text" class="text-gray-300 mb-6">-</p>
+            
+            <div class="flex flex-col gap-3">
+                <button id="btn-save-summary" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg transition">
+                    <i class="fas fa-save mr-2"></i> บันทึกคะแนน
+                </button>
+                <button id="btn-discard-summary" class="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-xl transition">
+                    <i class="fas fa-times mr-2"></i> ไม่บันทึก (กลับเมนู)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exit Confirmation Modal (For Stop Game) -->
     <div id="exit-overlay" class="hidden modal-overlay">
         <div class="bg-gray-800 p-6 rounded-2xl border border-gray-600 shadow-2xl max-w-sm w-full mx-4 text-center">
             <i class="fas fa-exclamation-circle text-5xl text-red-500 mb-4 animate-pulse"></i>
@@ -397,858 +288,676 @@
         </div>
     </div>
 
-    <!-- Summary Modal -->
-    <div id="summary-overlay" class="hidden modal-overlay">
-        <div class="bg-gray-800 rounded-2xl border border-gray-600 shadow-2xl max-w-sm w-full mx-4 overflow-hidden">
-            <div class="bg-green-700 p-4 text-center">
-                <h2 class="text-2xl font-bold text-white">ผลการประเมิน</h2>
-                <p class="text-green-100 text-sm">เกณฑ์สำหรับผู้ฟื้นฟู (Adapted WMFT)</p>
-            </div>
-            <div class="p-6 text-center">
-                <div class="inline-block p-4 rounded-full bg-gray-900 border-4 border-yellow-500 mb-4 shadow-lg w-24 h-24 flex items-center justify-center relative">
-                    <div>
-                        <span id="wmft-score" class="text-4xl font-bold text-white">3</span>
-                        <span class="text-xs text-gray-400 block">ระดับ</span>
-                    </div>
-                </div>
-                <h3 id="wmft-label" class="text-xl font-bold text-yellow-400 mb-4">ปานกลาง</h3>
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="bg-gray-700 p-2 rounded-lg">
-                        <p class="text-xs text-gray-400">จำนวนครั้ง</p>
-                        <p id="sum-score" class="text-xl font-bold text-white">0</p>
-                    </div>
-                    <div class="bg-gray-700 p-2 rounded-lg">
-                        <p class="text-xs text-gray-400">เวลาเฉลี่ย/ช่อง</p>
-                        <p id="sum-avg" class="text-xl font-bold text-blue-400">0s</p>
-                    </div>
-                </div>
-                
-                <div class="flex gap-3">
-                    <button id="btn-discard-summary" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-4 rounded-xl transition">
-                        ไม่บันทึก
-                    </button>
-                    <button id="btn-save-summary" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl transition shadow-lg">
-                        บันทึก
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div id="settings-overlay" class="hidden modal-overlay">
-        <div class="bg-gray-800 p-6 rounded-2xl border border-gray-600 shadow-2xl max-w-sm w-full mx-4">
-            <h2 class="text-xl font-bold text-white mb-4"><i class="fas fa-sliders-h mr-2"></i>ตั้งค่า & ระบบ</h2>
-            
-            <!-- Sound Toggle (Fixed) -->
-            <div class="mb-4 pb-4 border-b border-gray-700">
-                <label class="flex items-center justify-between cursor-pointer w-full select-none">
-                    <span class="text-white">เสียงพากย์และเอฟเฟกต์</span>
-                    <div class="relative">
-                        <input type="checkbox" id="setting-sound" class="sr-only toggle-checkbox">
-                        <!-- Track -->
-                        <div class="w-10 h-6 bg-gray-600 rounded-full shadow-inner toggle-track transition-colors duration-200"></div>
-                        <!-- Dot -->
-                        <div class="toggle-dot absolute w-4 h-4 bg-white rounded-full shadow left-1 top-1 transition-transform duration-200"></div>
-                    </div>
-                </label>
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-400 text-sm mb-2">เวลาค้างมือ (Hold Duration)</label>
-                <!-- Range: 6 frames (~0.2s) to 60 frames (~2s) -->
-                <input type="range" id="setting-hold" min="6" max="60" value="30" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
-                <div class="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>เร็ว (0.2s)</span>
-                    <span id="hold-val" class="text-yellow-400 font-bold">1.0s</span>
-                    <span>ช้า (2.0s)</span>
-                </div>
-            </div>
-
-            <div class="mb-6">
-                <label class="block text-gray-400 text-sm mb-2">เวลาเกม (Game Duration)</label>
-                <select id="setting-time" class="w-full bg-gray-700 text-white border border-gray-600 rounded p-2">
-                    <option value="60">1 นาที (สั้น)</option>
-                    <option value="120" selected>2 นาที (มาตรฐาน)</option>
-                    <option value="180">3 นาที (ยาว)</option>
-                </select>
-            </div>
-
-            <div class="flex gap-2">
-                <button id="btn-cancel-settings" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white py-2 rounded-lg">ยกเลิก</button>
-                <button id="btn-save-settings" class="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded-lg">บันทึก</button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // --- CONFIG & VARIABLES ---
+        // --- VARIABLES ---
+        let MODE = 'stroke';
         let GAME_DURATION = 120; 
-        let HOLD_DURATION_FRAMES = 30; // Changed default to 30 frames (1s)
-        let SOUND_ENABLED = true;
-        const SMOOTHING_FACTOR = 0.2; 
-        const HIT_TOLERANCE = 0.01; 
-        const NEAR_TOLERANCE = 0.25; 
-
-        // State
-        let score = 0;
-        let timeLeft = GAME_DURATION;
         let isPlaying = false;
         let isPaused = false;
-        let currentTargetIndex = -1;
+        let score = 0;
+        let timeLeft = 0;
         let timerInterval;
         let pose = null;
-        let animationFrameId; 
-        let lastSpeakTime = 0;
-        let audioContext = null;
-        let pendingSessionData = null; 
-        let selectedVoice = null;
+        let animationFrameId = null;
         
+        // Warmup Variables
+        let isWarmup = false;
+        let warmupStep = 0; 
+        let warmupProgress = 0;
+        let lastWristX = 0;
+        let waveAccumulator = 0;
+
+        // Stroke Game Variables
+        let currentTargetIndex = -1;
         let framesInTarget = 0;
-        let framesInNearZone = 0; 
-        let hasEncouraged = false; 
-        let isFirstFrame = true;
+        let HOLD_DURATION_FRAMES = 30;
 
-        let smoothLeftWrist = { x: 0, y: 0, visibility: 0 };
-        let smoothRightWrist = { x: 0, y: 0, visibility: 0 };
+        // Office Syndrome Variables
+        let officeState = 0;
+        let officeHoldTime = 0;
+        let TARGET_OFFICE_HOLD = 10.0;
+        let lastOfficeFrameTime = 0;
+        
+        // --- IMAGE CONFIGURATION (Real People from Manarom) ---
+        const OFFICE_POSES = [
+            { 
+                name: "ท่าที่ 1: กล้ามเนื้อคอด้านหลัง", 
+                short: "กดท้ายทอย", 
+                desc: "ประสานมือท้ายทอย ก้มหน้าลง", 
+                img: "https://www.manarom.com/blog/img/upper_body_stretches_neck_entensor_muscle.jpg" 
+            },
+            { 
+                name: "ท่าที่ 2: กล้ามเนื้อคอด้านข้าง (ขวา)", 
+                short: "เอียงคอขวา", 
+                desc: "มือขวาจับศีรษะ เอียงคอขวา", 
+                img: "https://www.manarom.com/blog/img/upper_body_stretches_Neck%20rotator_Neck_lateral_flexor.jpg" 
+            },
+            { 
+                name: "ท่าที่ 3: กล้ามเนื้อคอด้านข้าง (ซ้าย)", 
+                short: "เอียงคอซ้าย", 
+                desc: "มือซ้ายจับศีรษะ เอียงคอซ้าย", 
+                img: "https://www.manarom.com/blog/img/upper_body_stretches_Neck%20rotator_Neck_lateral_flexor.jpg" 
+            },
+            { 
+                name: "ท่าที่ 4: กล้ามเนื้อสะบักด้านใน", 
+                short: "ยืดสะบัก", 
+                desc: "แขนขวาพาดไหล่ซ้าย มือดึงศอก", 
+                img: "https://www.manarom.com/blog/img/upper_body_stretches_subscapularis_mucle.jpg" 
+            },
+            { 
+                name: "ท่าที่ 5: ยืดเหยียดสุดแขน", 
+                short: "ยืดสุดแขน", 
+                desc: "ประสานมือ ยืดแขนขึ้นสุด", 
+                img: "https://www.manarom.com/blog/img/upper_body_stretches_abdominal_upperbody_muscle.jpg" 
+            }
+        ];
 
-        // Elements
-        const screens = {
-            login: document.getElementById('login-screen'),
-            dashboard: document.getElementById('dashboard-screen'),
-            game: document.getElementById('game-screen')
-        };
-        const cells = document.querySelectorAll('.grid-cell');
+        // DOM Elements
+        const screens = { login: document.getElementById('login-screen'), dashboard: document.getElementById('dashboard-screen'), game: document.getElementById('game-screen') };
         const videoElement = document.getElementById('input-video');
         const canvasElement = document.getElementById('output-canvas');
         const canvasCtx = canvasElement.getContext('2d');
         const gridOverlay = document.getElementById('grid-overlay');
+        const officeUI = document.getElementById('office-ui');
+        const poseGuideBox = document.getElementById('pose-guide-box');
+        const holdBar = document.getElementById('hold-bar');
+        const videoWrapper = document.getElementById('video-wrapper');
         const settingsOverlay = document.getElementById('settings-overlay');
-        const infoOverlay = document.getElementById('info-overlay');
+        const progressStatusText = document.getElementById('progress-status-text');
+        const videoStatus = document.getElementById('video-status');
 
-        // --- MATH UTILS ---
-        function lerp(start, end, amt) { return (1 - amt) * start + amt * end; }
-        
-        function calculateAngle(a, b, c) {
-            const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
-            let angle = Math.abs(radians * 180.0 / Math.PI);
-            if (angle > 180.0) angle = 360 - angle;
-            return Math.round(angle);
+        function setupGrid() {
+            gridOverlay.innerHTML = '';
+            for(let i=0; i<9; i++) {
+                const div = document.createElement('div');
+                div.className = 'grid-cell';
+                div.dataset.index = i;
+                div.dataset.label = i+1;
+                gridOverlay.appendChild(div);
+            }
         }
+        setupGrid();
+        const cells = document.querySelectorAll('.grid-cell');
 
-        // --- STORAGE ---
-        function loadSettings() {
+        // --- PRELOAD AI (Warmup) ---
+        async function initPose() {
             try {
-                const settings = JSON.parse(localStorage.getItem('rehab_settings') || '{}');
-                if (settings.gameDuration) GAME_DURATION = parseInt(settings.gameDuration);
-                if (settings.holdDuration) HOLD_DURATION_FRAMES = parseInt(settings.holdDuration);
-                if (settings.soundEnabled !== undefined) SOUND_ENABLED = settings.soundEnabled;
+                if(pose) return; 
+                pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1635988162/${file}`});
+                pose.setOptions({modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
+                pose.onResults(onResults);
                 
-                document.getElementById('setting-time').value = GAME_DURATION;
-                document.getElementById('setting-hold').value = HOLD_DURATION_FRAMES;
-                document.getElementById('setting-sound').checked = SOUND_ENABLED;
-                
-                const seconds = (HOLD_DURATION_FRAMES * 0.033).toFixed(1);
-                document.getElementById('hold-val').innerText = seconds + "s";
-            } catch(e) { console.error(e); }
-        }
-
-        function saveSettings() {
-            const settings = {
-                gameDuration: GAME_DURATION,
-                holdDuration: HOLD_DURATION_FRAMES,
-                soundEnabled: SOUND_ENABLED
-            };
-            localStorage.setItem('rehab_settings', JSON.stringify(settings));
-        }
-
-        // --- DATA & UI ---
-        function showSummary(finalScore) {
-            const avgTime = finalScore > 0 ? (GAME_DURATION / finalScore) : 120;
-            let wmftGrade = 0;
-            let wmftLabel = "";
-
-            if (avgTime < 4.0) { wmftGrade = 5; wmftLabel = "ยอดเยี่ยม (Normal)"; }
-            else if (avgTime < 8.0) { wmftGrade = 4; wmftLabel = "ดีมาก (Good)"; }
-            else if (avgTime < 15.0) { wmftGrade = 3; wmftLabel = "ปานกลาง (Fair)"; }
-            else if (avgTime < 30.0) { wmftGrade = 2; wmftLabel = "พอใช้ (Poor)"; }
-            else { wmftGrade = 1; wmftLabel = "เริ่มฝึกฝน (Start)"; }
-            
-            pendingSessionData = {
-                score: finalScore,
-                avgTime: avgTime.toFixed(1),
-                wmft: wmftGrade,
-                label: wmftLabel,
-                timestamp: new Date().toISOString()
-            };
-
-            document.getElementById('wmft-score').innerText = wmftGrade;
-            document.getElementById('wmft-label').innerText = wmftLabel;
-            document.getElementById('sum-score').innerText = finalScore;
-            document.getElementById('sum-avg').innerText = avgTime.toFixed(1) + "s";
-            
-            const badge = document.getElementById('wmft-score').parentElement.parentElement;
-            badge.className = `inline-block p-4 rounded-full bg-gray-900 border-4 mb-4 shadow-lg w-24 h-24 flex items-center justify-center relative ${
-                wmftGrade >= 4 ? 'border-green-500' : (wmftGrade === 3 ? 'border-yellow-500' : 'border-red-500')
-            }`;
-            document.getElementById('wmft-label').className = `text-xl font-bold mb-4 ${
-                wmftGrade >= 4 ? 'text-green-400' : (wmftGrade === 3 ? 'text-yellow-400' : 'text-red-400')
-            }`;
-            
-            document.getElementById('summary-overlay').classList.remove('hidden');
-        }
-
-        function loadHistory() {
-            const chartContainer = document.getElementById('chart-container');
-            const historyList = document.getElementById('history-list');
-            try {
-                const history = JSON.parse(localStorage.getItem('rehab_history') || '[]');
-                
-                chartContainer.innerHTML = '';
-                if (history.length === 0) {
-                    chartContainer.innerHTML = '<p class="text-center w-full text-gray-500 text-sm self-center">ยังไม่มีข้อมูลการฝึก</p>';
-                } else {
-                    const recent = history.slice(-10);
-                    recent.forEach((data, index) => {
-                        const date = new Date(data.timestamp);
-                        const day = date.getDate() + '/' + (date.getMonth()+1);
-                        const barHeight = (data.wmft / 5) * 100;
-                        const barColor = data.wmft >= 4 ? 'bg-green-500' : (data.wmft >= 3 ? 'bg-yellow-500' : 'bg-red-500');
-                        
-                        const encodedLabel = data.label.replace(/'/g, "\\'"); 
-                        
-                        const barHtml = `
-                            <div onclick="showHistoryDetail('${data.timestamp}', ${data.score}, ${data.wmft}, '${encodedLabel}', '${data.avgTime}', this)" 
-                                 class="flex flex-col items-center justify-end h-full min-w-[2rem] group relative cursor-pointer tap-highlight-transparent transition-transform active:scale-95">
-                                <div class="w-full ${barColor} rounded-t-md bar-fill hover:opacity-80 transition-opacity" style="height: ${barHeight}%"></div>
-                                <span class="text-[10px] text-gray-500 mt-1">${day}</span>
-                            </div>
-                        `;
-                        chartContainer.innerHTML += barHtml;
-                    });
-                }
-
-                historyList.innerHTML = '';
-                const sortedHistory = [...history].reverse().slice(0, 5); 
-                sortedHistory.forEach(data => {
-                    const date = new Date(data.timestamp).toLocaleString('th-TH');
-                    const itemHtml = `
-                        <div class="bg-gray-700/50 p-3 rounded-lg flex justify-between items-center border border-gray-600">
-                            <div>
-                                <p class="text-white font-bold text-sm">เกรด ${data.wmft} - ${data.label}</p>
-                                <p class="text-gray-400 text-xs">${date}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-green-400 font-bold">${data.score} ครั้ง</p>
-                                <p class="text-gray-500 text-xs">${data.avgTime} วิ/ครั้ง</p>
-                            </div>
-                        </div>
-                    `;
-                    historyList.innerHTML += itemHtml;
-                });
-            } catch(e) { console.error("Load Error", e); }
-        }
-
-        window.showHistoryDetail = function(timestamp, score, grade, label, avgTime, element) {
-            const bars = document.querySelectorAll('#chart-container .bar-fill');
-            bars.forEach(b => b.classList.remove('bar-active'));
-            
-            const innerBar = element.querySelector('.bar-fill');
-            if(innerBar) innerBar.classList.add('bar-active');
-
-            const dateObj = new Date(timestamp);
-            const dateStr = dateObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
-            const timeStr = dateObj.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-
-            document.getElementById('detail-date').innerText = dateStr;
-            document.getElementById('detail-time').innerText = timeStr + " (" + avgTime + " วิ/ครั้ง)";
-            document.getElementById('detail-score').innerText = score + " ครั้ง";
-            document.getElementById('detail-grade').innerText = "เกรด " + grade + " (" + label + ")";
-
-            const detailBox = document.getElementById('chart-detail-box');
-            detailBox.classList.remove('hidden');
-            
-            // Fixed Scroll Logic
-            setTimeout(() => {
-                const dashboard = document.getElementById('dashboard-screen');
-                const detailBoxEl = document.getElementById('chart-detail-box');
-                const targetScroll = detailBoxEl.offsetTop - 20;
-                
-                dashboard.scrollTo({
-                    top: targetScroll,
-                    behavior: 'smooth'
-                });
-            }, 50);
-        }
-
-        // --- NAVIGATION ---
-        function showScreen(name) {
-            Object.values(screens).forEach(el => el.classList.add('hidden'));
-            screens[name].classList.remove('hidden');
-            if(name === 'dashboard') {
-                loadHistory();
-                // Check if history exists to auto-select latest
-                const history = JSON.parse(localStorage.getItem('rehab_history') || '[]');
-                if(history.length > 0) {
-                    const latest = history[history.length - 1];
-                    document.getElementById('detail-placeholder').classList.add('hidden');
-                    document.getElementById('detail-content').classList.remove('hidden');
-                    
-                    const dateObj = new Date(latest.timestamp);
-                    const dateStr = dateObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' });
-                    const timeStr = dateObj.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-
-                    document.getElementById('detail-date').innerText = dateStr;
-                    document.getElementById('detail-time').innerText = timeStr + " (" + latest.avgTime + " วิ/ครั้ง)";
-                    document.getElementById('detail-score').innerText = latest.score + " ครั้ง";
-                    document.getElementById('detail-grade').innerText = "เกรด " + latest.wmft + " (" + latest.label + ")";
-                } else {
-                    // Reset to placeholder
-                    document.getElementById('detail-placeholder').classList.remove('hidden');
-                    document.getElementById('detail-content').classList.add('hidden');
-                }
+                // Warm up background
+                const dummy = document.createElement('canvas');
+                dummy.width = 1; dummy.height = 1;
+                await pose.send({image: dummy});
+                console.log("Pose init started");
+            } catch(e) {
+                console.error("AI Init Failed", e);
             }
         }
 
-        // --- AUDIO ---
-        function initVoices() {
-            // Force load voices
-            voices = window.speechSynthesis.getVoices();
-        }
-
-        function speak(text) {
-            if(!SOUND_ENABLED) return;
-            const now = Date.now();
-            if (now - lastSpeakTime < 2000) return; // Reduce to 2s
-            lastSpeakTime = now;
-            
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'th-TH';
-                // Try to find a thai voice
-                const voices = window.speechSynthesis.getVoices();
-                const thaiVoice = voices.find(v => v.lang === 'th-TH');
-                if(thaiVoice) utterance.voice = thaiVoice;
-                
-                // Tweak voice
-                utterance.rate = 0.9;
-                utterance.pitch = 1.1;
-
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-
-        function playSuccessSound() {
-            if(!SOUND_ENABLED) return;
-            if (!audioContext) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if(AudioContext) audioContext = new AudioContext();
-            }
-            if (audioContext && audioContext.state === 'suspended') audioContext.resume();
-            
-            if (audioContext) {
-                const osc = audioContext.createOscillator();
-                const gain = audioContext.createGain();
-                osc.connect(gain);
-                gain.connect(audioContext.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(500, audioContext.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(1000, audioContext.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.1, audioContext.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-                osc.start();
-                osc.stop(audioContext.currentTime + 0.3);
-            }
-        }
-
-        // --- CORE LOGIC : RESIZING & COORDINATES ---
-        function resizeCanvas() {
-            const videoRatio = videoElement.videoWidth / videoElement.videoHeight;
-            if (!videoRatio) return;
-
-            const screenRatio = window.innerWidth / window.innerHeight;
-            let drawWidth, drawHeight;
-
-            if (screenRatio > videoRatio) {
-                drawHeight = window.innerHeight;
-                drawWidth = drawHeight * videoRatio;
+        // --- CORE FUNCTIONS ---
+        function selectMode(mode) {
+            MODE = mode;
+            if (MODE === 'stroke') {
+                document.getElementById('hud-label-left').innerText = "เวลา";
+                document.getElementById('hud-label-right').innerText = "คะแนน";
+                poseGuideBox.classList.add('hidden');
             } else {
-                drawWidth = window.innerWidth;
-                drawHeight = drawWidth / videoRatio;
+                document.getElementById('hud-label-left').innerText = "ท่าที่";
+                document.getElementById('hud-label-right').innerText = "เวลาค้าง";
+                poseGuideBox.classList.remove('hidden');
             }
-
-            gridOverlay.style.width = `${drawWidth}px`;
-            gridOverlay.style.height = `${drawHeight}px`;
-            
-            if(drawWidth > 0 && drawHeight > 0) {
-                gridOverlay.classList.add('visible');
-            }
-
-            canvasElement.width = videoElement.videoWidth;
-            canvasElement.height = videoElement.videoHeight;
+            startGame();
         }
 
-        // --- MEDIAPIPE ---
-        function onResults(results) {
-            if (isFirstFrame && results.image.width > 0) {
-                resizeCanvas();
-                isFirstFrame = false;
+        async function startGame() {
+            showScreen('game');
+            videoStatus.classList.remove('hidden'); 
+            score = 0;
+            isPaused = false;
+            isPlaying = true;
+            
+            loadSettings();
+
+            if (MODE === 'stroke') {
+                isWarmup = true;
+                warmupStep = 0;
+                warmupProgress = 0;
+                gridOverlay.classList.remove('visible'); 
+                officeUI.classList.remove('hidden'); 
+                setWarmupInstruction();
+                timeLeft = GAME_DURATION;
+            } else {
+                isWarmup = false;
+                officeState = 0;
+                officeHoldTime = 0;
+                setupOfficePose(0); 
+                gridOverlay.classList.remove('visible');
+                officeUI.classList.remove('hidden');
             }
+            
+            await startCameraAndAI();
+            setTimeout(resizeCanvas, 500);
+        }
+
+        function setWarmupInstruction() {
+            const texts = ["ยกมือซ้ายค้างไว้", "ยกมือขวาค้างไว้", "ยกมือทั้งสองข้างค้างไว้"];
+            document.getElementById('instruction-text').innerText = texts[warmupStep];
+            speak(texts[warmupStep]);
+            progressStatusText.innerText = texts[warmupStep];
+            holdBar.style.width = '0%';
+        }
+
+        function onResults(results) {
+            if (results.image.width > 1) {
+                videoStatus.classList.add('hidden');
+            }
+
+            if (canvasElement.width !== videoElement.videoWidth) resizeCanvas();
 
             canvasCtx.save();
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.translate(canvasElement.width, 0);
             canvasCtx.scale(-1, 1);
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-            
+
             if (results.poseLandmarks) {
                 drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: '#00FF00', lineWidth: 4});
-                drawLandmarks(canvasCtx, results.poseLandmarks, {color: '#FF0000', lineWidth: 2, radius: 3});
-                
-                const leftShoulder = results.poseLandmarks[11];
-                const leftElbow = results.poseLandmarks[13];
-                const leftWrist = results.poseLandmarks[15];
-                const rightShoulder = results.poseLandmarks[12];
-                const rightElbow = results.poseLandmarks[14];
-                const rightWrist = results.poseLandmarks[16];
+                drawLandmarks(canvasCtx, results.poseLandmarks, {color: '#FF0000', lineWidth: 2});
 
-                const VISIBILITY_THRESHOLD = 0.40; 
-
-                if (leftWrist.visibility > VISIBILITY_THRESHOLD) {
-                    smoothLeftWrist.x = lerp(smoothLeftWrist.x, leftWrist.x, SMOOTHING_FACTOR);
-                    smoothLeftWrist.y = lerp(smoothLeftWrist.y, leftWrist.y, SMOOTHING_FACTOR);
-                    smoothLeftWrist.visibility = leftWrist.visibility;
+                if (MODE === 'stroke') {
+                    if (isWarmup) {
+                        processWarmupLogic(results.poseLandmarks);
+                    } else {
+                        processStrokeLogic(results.poseLandmarks);
+                    }
                 } else {
-                    smoothLeftWrist.visibility = lerp(smoothLeftWrist.visibility, 0, 0.05);
+                    processOfficeLogic(results.poseLandmarks);
                 }
-
-                if (rightWrist.visibility > VISIBILITY_THRESHOLD) {
-                    smoothRightWrist.x = lerp(smoothRightWrist.x, rightWrist.x, SMOOTHING_FACTOR);
-                    smoothRightWrist.y = lerp(smoothRightWrist.y, rightWrist.y, SMOOTHING_FACTOR);
-                    smoothRightWrist.visibility = rightWrist.visibility;
-                } else {
-                    smoothRightWrist.visibility = lerp(smoothRightWrist.visibility, 0, 0.05);
-                }
-
-                canvasCtx.fillStyle = 'rgba(255, 0, 255, 0.4)';
-                canvasCtx.strokeStyle = 'white';
-                canvasCtx.lineWidth = 4;
-                // Font setup is done inside the drawing logic now for flipping
-                
-                let activeWristInTarget = false;
-                let activeWristNearTarget = false;
-
-                if (smoothLeftWrist.visibility > 0.4) {
-                    const x = smoothLeftWrist.x * canvasElement.width;
-                    const y = smoothLeftWrist.y * canvasElement.height;
-                    
-                    canvasCtx.beginPath();
-                    canvasCtx.arc(x, y, 50, 0, 2 * Math.PI);
-                    canvasCtx.fill();
-                    canvasCtx.stroke();
-                    
-                    // Angle
-                    if (leftElbow.visibility > 0.5 && leftShoulder.visibility > 0.5) {
-                        const angle = calculateAngle(leftShoulder, leftElbow, leftWrist);
-                        
-                        canvasCtx.save();
-                        // Move to elbow position
-                        canvasCtx.translate(leftElbow.x * canvasElement.width, leftElbow.y * canvasElement.height);
-                        // Flip text back
-                        canvasCtx.scale(-1, 1);
-                        
-                        canvasCtx.font = "bold 36px Prompt, Arial";
-                        canvasCtx.fillStyle = "#fbbf24"; // Yellow
-                        canvasCtx.strokeStyle = "black";
-                        canvasCtx.lineWidth = 4;
-                        canvasCtx.strokeText(angle + "°", 15, 0); 
-                        canvasCtx.fillText(angle + "°", 15, 0);
-                        
-                        canvasCtx.restore();
-                        canvasCtx.fillStyle = 'rgba(255, 0, 255, 0.4)'; // Reset
-                    }
-
-                    if (isPlaying && !isPaused && currentTargetIndex !== -1) {
-                        if(checkHover(smoothLeftWrist, false)) activeWristInTarget = true;
-                        else if(checkHover(smoothLeftWrist, true)) activeWristNearTarget = true;
-                    }
-                }
-
-                if (smoothRightWrist.visibility > 0.4) {
-                    const x = smoothRightWrist.x * canvasElement.width;
-                    const y = smoothRightWrist.y * canvasElement.height;
-                    
-                    canvasCtx.beginPath();
-                    canvasCtx.arc(x, y, 50, 0, 2 * Math.PI);
-                    canvasCtx.fill();
-                    canvasCtx.stroke();
-
-                    // Angle
-                    if (rightElbow.visibility > 0.5 && rightShoulder.visibility > 0.5) {
-                        const angle = calculateAngle(rightShoulder, rightElbow, rightWrist);
-                        
-                        canvasCtx.save();
-                        // Move to elbow position
-                        canvasCtx.translate(rightElbow.x * canvasElement.width, rightElbow.y * canvasElement.height);
-                        // Flip text back
-                        canvasCtx.scale(-1, 1);
-                        
-                        canvasCtx.font = "bold 36px Prompt, Arial";
-                        canvasCtx.fillStyle = "cyan";
-                        canvasCtx.strokeStyle = "black";
-                        canvasCtx.lineWidth = 4;
-                        // For right arm, we might want to draw it to the left side (which is right side in flipped context... confusing, let's just use offset)
-                        canvasCtx.strokeText(angle + "°", -80, 0); 
-                        canvasCtx.fillText(angle + "°", -80, 0);
-                        
-                        canvasCtx.restore();
-                        canvasCtx.fillStyle = 'rgba(255, 0, 255, 0.4)';
-                    }
-
-                    if (isPlaying && !isPaused && currentTargetIndex !== -1) {
-                        if(checkHover(smoothRightWrist, false)) activeWristInTarget = true;
-                        else if(checkHover(smoothRightWrist, true)) activeWristNearTarget = true;
-                    }
-                }
-                updateGameLogic(activeWristInTarget, activeWristNearTarget);
             }
             canvasCtx.restore();
         }
 
-        // --- TOLERANCE LOGIC ---
-        function checkHover(wrist, isNearCheck) {
-            const targetRow = Math.floor(currentTargetIndex / 3);
-            const targetCol = currentTargetIndex % 3;
-            
-            const TOLERANCE = isNearCheck ? NEAR_TOLERANCE : HIT_TOLERANCE;
-            
-            let minX, maxX;
-            if (targetCol === 0) { minX = 0.66 - TOLERANCE; maxX = 1.0; }       
-            else if (targetCol === 1) { minX = 0.33 - TOLERANCE; maxX = 0.66 + TOLERANCE; } 
-            else { minX = 0.0; maxX = 0.33 + TOLERANCE; }                       
-            
-            const minY = (targetRow * 0.33) - TOLERANCE;
-            const maxY = ((targetRow + 1) * 0.33) + TOLERANCE;
-            return (wrist.x >= minX && wrist.x <= maxX && wrist.y >= minY && wrist.y <= maxY);
+        // --- HELPER: CALCULATE ANGLE ---
+        function calculateAngle(p1, p2) {
+            // Returns angle in degrees. 0 = Horizontal.
+            const dy = p2.y - p1.y;
+            const dx = p2.x - p1.x;
+            const theta = Math.atan2(dy, dx); 
+            return theta * (180 / Math.PI);
         }
 
-        function updateGameLogic(isInTarget, isNearTarget) {
-            if (currentTargetIndex === -1 || !cells[currentTargetIndex]) return;
-            const targetCell = cells[currentTargetIndex];
+        // --- WARMUP LOGIC (Updated to Show Both Hands) ---
+        function processWarmupLogic(lm) {
+            const leftWrist = lm[15];
+            const rightWrist = lm[16];
+            const leftShoulder = lm[11];
+            const rightShoulder = lm[12];
             
-            if (isInTarget) {
-                framesInTarget++;
-                framesInNearZone = 0; 
-                
-                targetCell.classList.add('hovering');
-                targetCell.classList.remove('near'); 
-                document.getElementById('hold-indicator').classList.remove('hidden');
-                document.getElementById('encourage-indicator').classList.add('hidden');
-                
-                if (framesInTarget >= HOLD_DURATION_FRAMES) handleSuccess();
-            } else {
-                framesInTarget = Math.max(0, framesInTarget - 1); 
-                
-                if (isNearTarget) {
-                    // Update state
-                    targetCell.classList.add('near');
-                    framesInNearZone++;
-                    
-                    // Logic: Trigger encouragement
-                    // 30 frames ~ 1 second
-                    if(framesInNearZone > 30 && !hasEncouraged) {
-                        speak("อีกนิดเดียว พยายามเข้า");
-                        hasEncouraged = true;
-                        document.getElementById('encourage-indicator').classList.remove('hidden');
-                        setTimeout(() => document.getElementById('encourage-indicator').classList.add('hidden'), 2500);
-                    }
+            document.getElementById('hold-progress-container').classList.remove('opacity-0');
+
+            if (warmupStep === 0) {
+                // Step 0: Left Hand
+                if (leftWrist.visibility > 0.5 && leftWrist.y < leftShoulder.y) {
+                    warmupProgress += 0.65; 
+                    drawHandCursor(leftWrist, '#22c55e', "มือซ้าย");
                 } else {
-                    // LEFT THE ZONE - RESET ENCOURAGEMENT
-                    framesInNearZone = 0;
-                    hasEncouraged = false; // Allows it to trigger again next time
-                    targetCell.classList.remove('near');
+                    warmupProgress = Math.max(0, warmupProgress - 1);
+                }
+            } else if (warmupStep === 1) {
+                // Step 1: Right Hand
+                if (rightWrist.visibility > 0.5 && rightWrist.y < rightShoulder.y) {
+                    warmupProgress += 0.65;
+                    drawHandCursor(rightWrist, '#22c55e', "มือขวา");
+                } else {
+                    warmupProgress = Math.max(0, warmupProgress - 1);
+                }
+            } else if (warmupStep === 2) {
+                // Step 2: Show BOTH Hands
+                let bothUp = false;
+                if (leftWrist.visibility > 0.5 && rightWrist.visibility > 0.5) {
+                    if (leftWrist.y < leftShoulder.y && rightWrist.y < rightShoulder.y) {
+                        bothUp = true;
+                    }
                 }
 
-                if (framesInTarget === 0) {
-                    targetCell.classList.remove('hovering');
-                    document.getElementById('hold-indicator').classList.add('hidden');
+                if (leftWrist.visibility > 0.5) drawHandCursor(leftWrist, bothUp ? '#22c55e' : '#FFFF00', "มือซ้าย");
+                if (rightWrist.visibility > 0.5) drawHandCursor(rightWrist, bothUp ? '#22c55e' : '#FFFF00', "มือขวา");
+
+                if (bothUp) {
+                    warmupProgress += 0.65;
+                } else {
+                    warmupProgress = Math.max(0, warmupProgress - 1);
+                }
+            }
+
+            holdBar.style.width = `${Math.min(warmupProgress, 100)}%`;
+
+            if (warmupProgress >= 100) {
+                warmupStep++;
+                warmupProgress = 0;
+                waveAccumulator = 0;
+                playSuccessSound();
+
+                if (warmupStep > 2) {
+                    isWarmup = false;
+                    speak("พร้อมแล้ว เริ่มได้");
+                    document.getElementById('instruction-text').innerText = "พร้อม!";
+                    document.getElementById('hold-progress-container').classList.add('opacity-0'); 
+                    
+                    setTimeout(() => {
+                        gridOverlay.classList.add('visible');
+                        officeUI.classList.add('hidden');
+                        pickNewTarget();
+                        startStrokeTimer();
+                    }, 1500);
+                } else {
+                    setWarmupInstruction();
                 }
             }
         }
 
-        function handleSuccess() {
-            framesInTarget = 0;
-            framesInNearZone = 0;
-            const oldIndex = currentTargetIndex;
-            score++;
-            document.getElementById('game-score').innerText = score;
+        // --- STROKE LOGIC ---
+        function processStrokeLogic(landmarks) {
+            const leftWrist = landmarks[15];
+            const rightWrist = landmarks[16];
+            let active = null;
+            let label = "";
             
-            const cell = cells[oldIndex];
-            cell.classList.remove('target', 'hovering', 'near');
-            cell.classList.add('success');
-            document.getElementById('hold-indicator').classList.add('hidden');
-            document.getElementById('encourage-indicator').classList.add('hidden');
-            
-            const icon = document.getElementById('feedback-icon');
-            icon.classList.remove('opacity-0', 'scale-50');
-            icon.classList.add('opacity-100', 'scale-100');
-            
-            setTimeout(() => {
-                icon.classList.add('opacity-0', 'scale-50');
-                icon.classList.remove('opacity-100', 'scale-100');
-            }, 500);
+            if (leftWrist.visibility > 0.5) {
+                active = leftWrist;
+                label = "มือซ้าย";
+            } else if (rightWrist.visibility > 0.5) {
+                active = rightWrist;
+                label = "มือขวา";
+            }
 
-            playSuccessSound();
-            speak(["เก่งมาก", "เยี่ยม", "ดีมาก", "ถูกต้อง"][Math.floor(Math.random()*4)]);
+            // Draw and track all visible hands
+            const hands = [];
+            if(leftWrist.visibility > 0.5) hands.push({p: leftWrist, l: "มือซ้าย"});
+            if(rightWrist.visibility > 0.5) hands.push({p: rightWrist, l: "มือขวา"});
 
-            currentTargetIndex = -1; 
-            setTimeout(() => {
-                cell.classList.remove('success');
-                pickNewTarget();
-            }, 600);
+            let hit = false;
+
+            hands.forEach(h => {
+                drawHandCursor(h.p, '#00FFFF', h.l);
+                
+                if (currentTargetIndex !== -1) {
+                    const row = Math.floor(currentTargetIndex / 3);
+                    const col = currentTargetIndex % 3;
+                    let targetMinX, targetMaxX, targetMinY, targetMaxY;
+                    if (col === 0) { targetMinX = 0.66; targetMaxX = 1.0; } 
+                    else if (col === 1) { targetMinX = 0.33; targetMaxX = 0.66; }
+                    else { targetMinX = 0.0; targetMaxX = 0.33; }
+                    targetMinY = row * 0.33;
+                    targetMaxY = (row + 1) * 0.33;
+
+                    if (h.p.x >= targetMinX && h.p.x <= targetMaxX && h.p.y >= targetMinY && h.p.y <= targetMaxY) {
+                        hit = true;
+                    }
+                }
+            });
+
+            if (currentTargetIndex !== -1) {
+                if (hit) {
+                    framesInTarget++;
+                    cells[currentTargetIndex].classList.add('hovering');
+                    if (framesInTarget > HOLD_DURATION_FRAMES) {
+                        score++;
+                        document.getElementById('game-score').innerText = score;
+                        playSuccessSound();
+                        pickNewTarget();
+                    }
+                } else {
+                    framesInTarget = 0;
+                    cells[currentTargetIndex].classList.remove('hovering');
+                }
+            }
+        }
+
+        function drawHandCursor(point, color, label = "") {
+            const x = point.x * canvasElement.width;
+            const y = point.y * canvasElement.height;
+            canvasCtx.save();
+            canvasCtx.beginPath();
+            canvasCtx.arc(x, y, 40, 0, 2 * Math.PI);
+            canvasCtx.fillStyle = color + "4D"; 
+            canvasCtx.fill();
+            canvasCtx.lineWidth = 4;
+            canvasCtx.strokeStyle = color;
+            canvasCtx.shadowColor = color;
+            canvasCtx.shadowBlur = 15;
+            canvasCtx.stroke();
+            
+            if(label) {
+                // Un-flip context for text
+                canvasCtx.save();
+                canvasCtx.translate(x, y);
+                canvasCtx.scale(-1, 1); 
+                
+                canvasCtx.font = "bold 24px Prompt";
+                canvasCtx.fillStyle = "white";
+                canvasCtx.strokeStyle = "black";
+                canvasCtx.lineWidth = 3;
+                canvasCtx.textAlign = "center";
+                canvasCtx.strokeText(label, 0, -50);
+                canvasCtx.fillText(label, 0, -50);
+                
+                canvasCtx.restore();
+            }
+            
+            canvasCtx.restore();
         }
 
         function pickNewTarget() {
-            if (!isPlaying || isPaused) return;
-            cells.forEach(c => c.classList.remove('target', 'hovering', 'success', 'near'));
+            cells.forEach(c => c.classList.remove('target', 'hovering', 'success'));
             let newIndex;
-            do { newIndex = Math.floor(Math.random() * 9); } while (newIndex === currentTargetIndex && score > 0);
+            do { newIndex = Math.floor(Math.random() * 9); } while (newIndex === currentTargetIndex);
             currentTargetIndex = newIndex;
             cells[currentTargetIndex].classList.add('target');
-            
-            framesInNearZone = 0;
-            hasEncouraged = false;
-            
-            const targetNum = currentTargetIndex + 1;
-            document.getElementById('instruction-text').innerText = `ไปที่ช่อง ${targetNum}`;
+            framesInTarget = 0;
+            document.getElementById('instruction-text').innerText = `แตะช่อง ${currentTargetIndex + 1}`;
         }
 
-        function startTimer() {
-            timeLeft = GAME_DURATION;
-            document.getElementById('game-timer').innerText = timeLeft;
-            document.getElementById('game-timer').classList.remove('text-red-500');
-            
+        function startStrokeTimer() {
             timerInterval = setInterval(() => {
-                if (!isPlaying || isPaused) return;
+                if(isPaused) return;
                 timeLeft--;
                 document.getElementById('game-timer').innerText = timeLeft;
-                if(timeLeft <= 10) document.getElementById('game-timer').classList.add('text-red-500');
-                if (timeLeft <= 0) endGame();
+                if(timeLeft <= 0) endGame();
             }, 1000);
         }
 
-        // --- EXPORT & SETTINGS ---
-        function exportHistory() {
-            const history = JSON.parse(localStorage.getItem('rehab_history') || '[]');
-            if (history.length === 0) { alert("ไม่มีข้อมูล"); return; }
-            let csvContent = "data:text/csv;charset=utf-8,Date,Score,AvgTime,Grade\n";
-            history.forEach(row => {
-                csvContent += `${row.timestamp},${row.score},${row.avgTime},${row.wmft}\n`;
-            });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "rehab_data.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        // --- OFFICE SYNDROME LOGIC (IMPROVED) ---
+        function processOfficeLogic(lm) {
+            if (officeState >= OFFICE_POSES.length) return;
+            const nose = lm[0];
+            const leftEye = lm[2];
+            const rightEye = lm[5];
+            const leftEar = lm[7];
+            const rightEar = lm[8];
+            const leftShoulder = lm[11]; 
+            const rightShoulder = lm[12];
+            const leftElbow = lm[13];
+            const rightElbow = lm[14];
+            const leftWrist = lm[15]; 
+            const rightWrist = lm[16]; 
+            
+            let isMatching = false;
+            
+            switch(officeState) {
+                // Pose 1: Posterior Neck (Hands BEHIND head, Chin down)
+                case 0: 
+                    // Criteria: Wrists high (near ears), Hands close together, Elbows out
+                    const handsHigh = leftWrist.y < leftEar.y && rightWrist.y < rightEar.y;
+                    const handsClose = Math.abs(leftWrist.x - rightWrist.x) < 0.2;
+                    const elbowsOut = leftElbow.x > leftShoulder.x && rightElbow.x < rightShoulder.x; // Note: x coords flipped? 
+                    // Simpler elbow check: elbows roughly same height as shoulders or slightly lower, not hanging down
+                    
+                    if (handsHigh && handsClose) isMatching = true; 
+                    break;
+
+                // Pose 2: Lateral Neck Right (Right hand pulls head to right)
+                case 1: 
+                    // Criteria: Right hand high, Head tilted
+                    const rHandHigh = rightWrist.y < rightEar.y;
+                    // Head Tilt: Right Eye should be lower than Left Eye (since y increases down)
+                    // Angle of eyes line: Positive angle means tilted right (if dx > 0)
+                    const eyeAngleR = calculateAngle(leftEye, rightEye); // Normal ~0. Tilted Right > 10?
+                    // Let's use simple Y diff. If tilted right, RightEye.y > LeftEye.y
+                    const isTiltedRight = (rightEye.y - leftEye.y) > 0.02; 
+                    
+                    if (rHandHigh && isTiltedRight) isMatching = true; 
+                    break;
+
+                // Pose 3: Lateral Neck Left
+                case 2: 
+                    const lHandHigh = leftWrist.y < leftEar.y;
+                    // Head Tilt: Left Eye lower than Right Eye
+                    const isTiltedLeft = (leftEye.y - rightEye.y) > 0.02;
+                    
+                    if (lHandHigh && isTiltedLeft) isMatching = true; 
+                    break;
+
+                // Pose 4: Scapula
+                case 3: 
+                    // Cross arm
+                    if (Math.abs(rightWrist.x - leftShoulder.x) < 0.2 && rightWrist.y < rightShoulder.y) isMatching = true; 
+                    break;
+
+                // Pose 5: Upper Body
+                case 4: 
+                    if (leftWrist.y < nose.y && rightWrist.y < nose.y && leftWrist.y < 0.2) isMatching = true; 
+                    break;
+            }
+
+            const now = Date.now();
+            const dt = (now - lastOfficeFrameTime) / 1000;
+            lastOfficeFrameTime = now;
+
+            if (isMatching && !isPaused) {
+                officeHoldTime += dt;
+                if (officeHoldTime >= TARGET_OFFICE_HOLD) {
+                    playSuccessSound();
+                    officeState++;
+                    officeHoldTime = 0;
+                    if (officeState >= OFFICE_POSES.length) {
+                        endGame();
+                    } else {
+                        setupOfficePose(officeState);
+                    }
+                }
+            }
+            document.getElementById('hold-progress-container').classList.remove('opacity-0');
+            progressStatusText.innerText = "กำลังยืดกล้ามเนื้อ...";
+            document.getElementById('game-score').innerText = Math.floor(officeHoldTime) + "s";
+            const pct = Math.min((officeHoldTime / TARGET_OFFICE_HOLD) * 100, 100);
+            holdBar.style.width = `${pct}%`;
         }
 
-        document.getElementById('btn-export').addEventListener('click', exportHistory);
-        document.getElementById('btn-settings').addEventListener('click', () => {
-            // Load current settings into modal before showing
-            document.getElementById('setting-time').value = GAME_DURATION;
-            document.getElementById('setting-hold').value = HOLD_DURATION_FRAMES;
-            document.getElementById('setting-sound').checked = SOUND_ENABLED;
-            const seconds = (HOLD_DURATION_FRAMES * 0.033).toFixed(1);
-            document.getElementById('hold-val').innerText = seconds + "s";
+        // --- COMMON UTILS ---
+        function setupOfficePose(index) {
+            if (index >= OFFICE_POSES.length) return;
+            document.getElementById('instruction-text').innerText = OFFICE_POSES[index].desc;
+            document.getElementById('game-timer').innerText = (index + 1) + "/" + OFFICE_POSES.length;
+            document.getElementById('game-score').innerText = "0s";
+            poseGuideBox.classList.remove('slide-in');
+            void poseGuideBox.offsetWidth; 
+            poseGuideBox.classList.add('slide-in');
             
-            settingsOverlay.classList.remove('hidden');
-        });
-        document.getElementById('btn-cancel-settings').addEventListener('click', () => {
-            settingsOverlay.classList.add('hidden');
-        });
-        document.getElementById('setting-hold').addEventListener('input', (e) => {
-            const val = e.target.value;
-            const seconds = (val * 0.033).toFixed(1);
-            document.getElementById('hold-val').innerText = seconds + "s";
-        });
-        document.getElementById('btn-save-settings').addEventListener('click', () => {
-            HOLD_DURATION_FRAMES = parseInt(document.getElementById('setting-hold').value);
-            GAME_DURATION = parseInt(document.getElementById('setting-time').value);
-            SOUND_ENABLED = document.getElementById('setting-sound').checked;
-            
-            saveSettings(); // Persist
-            settingsOverlay.classList.add('hidden');
-            alert("บันทึกการตั้งค่าแล้ว");
-        });
+            const imgEl = document.getElementById('pose-guide-img');
+            imgEl.src = OFFICE_POSES[index].img;
+            imgEl.onerror = function() { 
+                this.src = `https://placehold.co/400x600/333333/ffffff?text=${OFFICE_POSES[index].short}`; 
+            };
 
-        // --- INFO MODAL HANDLERS ---
-        document.getElementById('btn-info').addEventListener('click', () => {
-            infoOverlay.classList.remove('hidden');
-        });
-
-        document.getElementById('btn-close-info').addEventListener('click', () => {
-            infoOverlay.classList.add('hidden');
-        });
-
-        document.getElementById('btn-close-info-bottom').addEventListener('click', () => {
-            infoOverlay.classList.add('hidden');
-        });
-
-        // --- GAME CONTROL ---
-        function pauseGame() {
-            if(!isPlaying) return;
-            isPaused = true;
-            document.getElementById('pause-overlay').classList.remove('hidden');
-            document.getElementById('hold-indicator').classList.add('hidden');
-            cells.forEach(c => c.classList.remove('hovering'));
-        }
-
-        function resumeGame() {
-            if(!isPlaying) return;
-            isPaused = false;
-            document.getElementById('pause-overlay').classList.add('hidden');
-            if(currentTargetIndex === -1) pickNewTarget();
+            document.getElementById('pose-guide-name').innerText = OFFICE_POSES[index].short;
+            speak(OFFICE_POSES[index].name);
+            setTimeout(() => speak(OFFICE_POSES[index].desc), 1500);
         }
 
         function endGame() {
             isPlaying = false;
-            isPaused = false;
             clearInterval(timerInterval);
-            speak("จบการฝึก");
-            showSummary(score);
+            document.getElementById('summary-overlay').classList.remove('hidden');
+            if (MODE === 'stroke') {
+                document.getElementById('summary-text').innerText = `คุณทำได้ ${score} คะแนน ในเวลา ${GAME_DURATION} วินาที`;
+                speak("จบการทดสอบ");
+            } else {
+                document.getElementById('summary-text').innerText = `ทำครบทั้ง 5 ท่าแล้ว เยี่ยมมาก!`;
+                speak("ทำครบทุกท่าแล้ว เยี่ยมมากครับ");
+            }
         }
 
-        // --- MANUAL CAMERA & AI LOOP ---
+        function showScreen(name) {
+            Object.values(screens).forEach(el => el.classList.add('hidden'));
+            screens[name].classList.remove('hidden');
+            if(name === 'dashboard') loadHistory();
+        }
+
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'th-TH';
+                window.speechSynthesis.speak(u);
+            }
+        }
+
+        function playSuccessSound() {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.connect(g); g.connect(ctx.destination);
+            osc.frequency.setValueAtTime(600, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.1);
+            g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+            osc.start(); osc.stop(ctx.currentTime + 0.5);
+        }
+
+        function loadSettings() {
+            try {
+                const s = JSON.parse(localStorage.getItem('nsm_settings') || '{}');
+                if(s.duration) GAME_DURATION = parseInt(s.duration);
+                if(s.hold) HOLD_DURATION_FRAMES = parseInt(s.hold);
+                document.getElementById('setting-time').value = GAME_DURATION;
+                document.getElementById('setting-hold').value = HOLD_DURATION_FRAMES;
+                document.getElementById('hold-val').innerText = (HOLD_DURATION_FRAMES/30).toFixed(1) + "s";
+            } catch(e) {}
+        }
+        function saveSettings() {
+            const s = {
+                duration: parseInt(document.getElementById('setting-time').value),
+                hold: parseInt(document.getElementById('setting-hold').value)
+            };
+            localStorage.setItem('nsm_settings', JSON.stringify(s));
+            GAME_DURATION = s.duration;
+            HOLD_DURATION_FRAMES = s.hold;
+            settingsOverlay.classList.add('hidden');
+        }
+        function loadHistory() {
+            const list = document.getElementById('history-list');
+            const h = JSON.parse(localStorage.getItem('nsm_history') || '[]');
+            list.innerHTML = h.length ? '' : '<p class="text-center text-gray-500 text-sm">ยังไม่มีประวัติ</p>';
+            h.reverse().slice(0,5).forEach(item => {
+                list.innerHTML += `<div class="bg-gray-700/50 p-3 rounded mb-2 flex justify-between"><span class="text-white">${item.mode === 'office' ? 'ออฟฟิศซินโดรม' : 'ฟื้นฟู Stroke'}</span><span class="text-green-400">${item.date}</span></div>`;
+            });
+        }
+
+        function resizeCanvas() {
+            if (!videoElement.videoWidth) return;
+            const vRatio = videoElement.videoWidth / videoElement.videoHeight;
+            const wRatio = videoWrapper.clientWidth / videoWrapper.clientHeight;
+            let w, h;
+            if (wRatio > vRatio) { h = videoWrapper.clientHeight; w = h * vRatio; }
+            else { w = videoWrapper.clientWidth; h = w / vRatio; }
+            canvasElement.style.width = w + 'px'; canvasElement.style.height = h + 'px';
+            canvasElement.width = videoElement.videoWidth; canvasElement.height = videoElement.videoHeight;
+            gridOverlay.style.width = w + 'px'; gridOverlay.style.height = h + 'px';
+        }
+        window.addEventListener('resize', resizeCanvas);
+
         async function startCameraAndAI() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: 640, height: 480 } 
-                });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: {ideal: 640}, height: {ideal: 480} } });
                 videoElement.srcObject = stream;
-                
                 await new Promise(r => videoElement.onloadedmetadata = r);
                 videoElement.play();
                 
-                pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1635988162/${file}`});
-                pose.setOptions({
-                    modelComplexity: 1, 
-                    smoothLandmarks: true,
-                    minDetectionConfidence: 0.5,
-                    minTrackingConfidence: 0.5
-                });
-                pose.onResults(onResults);
-
+                // Initialize Pose AI Here (Lazy Loading)
+                if(!pose) {
+                    pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1635988162/${file}`});
+                    pose.setOptions({modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
+                    pose.onResults(onResults);
+                }
+                
                 processFrame();
-
-            } catch (e) {
-                console.error(e);
-                alert("ไม่สามารถเปิดกล้องได้: " + e.message);
-                showScreen('dashboard');
-            }
+            } catch(e) { alert("Camera Error: " + e.message); showScreen('dashboard'); }
         }
-
         async function processFrame() {
-            if (!isPlaying || isPaused) {
-                if(isPlaying) animationFrameId = requestAnimationFrame(processFrame);
-                return;
-            }
-            
+            if(!isPlaying || isPaused) { if(isPlaying) requestAnimationFrame(processFrame); return; }
             await pose.send({image: videoElement});
-            animationFrameId = requestAnimationFrame(processFrame);
+            requestAnimationFrame(processFrame);
         }
 
+        // --- NEW: Helper to Return to Dashboard without Reloading ---
         function stopCamera() {
-            cancelAnimationFrame(animationFrameId);
             if (videoElement.srcObject) {
-                videoElement.srcObject.getTracks().forEach(t => t.stop());
+                videoElement.srcObject.getTracks().forEach(track => track.stop());
                 videoElement.srcObject = null;
             }
+            if(animationFrameId) cancelAnimationFrame(animationFrameId);
+            isPlaying = false;
         }
 
-        // --- HANDLERS ---
-        document.getElementById('btn-demo-start').addEventListener('click', () => {
-            showScreen('dashboard');
-            // Init voices early
-            initVoices();
-        });
-        document.getElementById('btn-logout').addEventListener('click', () => showScreen('login'));
-
-        document.getElementById('btn-start-game').addEventListener('click', async () => {
-            // Unlock audio context on start
-            if(SOUND_ENABLED) {
-                speechSynthesis.speak(new SpeechSynthesisUtterance(''));
-            }
-
-            showScreen('game');
-            score = 0;
-            framesInTarget = 0;
-            timeLeft = GAME_DURATION; 
-            document.getElementById('game-score').innerText = "0";
-            
-            isFirstFrame = true; 
-            isPaused = false;
-            gridOverlay.classList.remove('visible');
-            document.getElementById('pause-overlay').classList.add('hidden');
+        function returnToDashboard() {
+            stopCamera();
             document.getElementById('summary-overlay').classList.add('hidden');
+            document.getElementById('pause-overlay').classList.add('hidden');
             document.getElementById('exit-overlay').classList.add('hidden');
-            
-            smoothLeftWrist = { x: 0, y: 0, visibility: 0 };
-            smoothRightWrist = { x: 0, y: 0, visibility: 0 };
-            
-            isPlaying = true;
-            await startCameraAndAI();
-            pickNewTarget();
-            startTimer();
-        });
+            showScreen('dashboard');
+        }
 
-        document.getElementById('btn-pause-game').addEventListener('click', pauseGame);
-        document.getElementById('btn-resume').addEventListener('click', resumeGame);
+        // --- SAFE EVENT BINDING ---
+        function safeBind(id, event, handler) {
+            const el = document.getElementById(id);
+            if(el) el.addEventListener(event, handler);
+        }
+
+        safeBind('btn-demo-start', 'click', () => showScreen('dashboard'));
+        safeBind('btn-logout', 'click', () => showScreen('login'));
+        safeBind('btn-stop-game', 'click', endGame);
         
-        document.getElementById('btn-stop-game').addEventListener('click', () => {
-            if (!isPlaying && !isPaused) return;
-            isPaused = true; 
-            document.getElementById('exit-overlay').classList.remove('hidden');
+        // Updated Save & Discard buttons to use returnToDashboard()
+        safeBind('btn-close-summary', 'click', () => {
+            const h = JSON.parse(localStorage.getItem('nsm_history') || '[]');
+            h.push({ mode: MODE, score: score, date: new Date().toLocaleDateString('th-TH') });
+            localStorage.setItem('nsm_history', JSON.stringify(h));
+            returnToDashboard();
         });
 
-        document.getElementById('btn-cancel-exit').addEventListener('click', () => {
+        safeBind('btn-save-summary', 'click', () => {
+            const h = JSON.parse(localStorage.getItem('nsm_history') || '[]');
+            h.push({ mode: MODE, score: score, date: new Date().toLocaleDateString('th-TH') });
+            localStorage.setItem('nsm_history', JSON.stringify(h));
+            returnToDashboard();
+        });
+
+        safeBind('btn-discard-summary', 'click', () => {
+            returnToDashboard();
+        });
+
+        safeBind('btn-pause-game', 'click', () => { isPaused = true; document.getElementById('pause-overlay').classList.remove('hidden'); });
+        safeBind('btn-resume', 'click', () => { isPaused = false; document.getElementById('pause-overlay').classList.add('hidden'); lastOfficeFrameTime = Date.now(); });
+        
+        // Updated Exit from Pause
+        safeBind('btn-exit-pause', 'click', () => {
+            returnToDashboard();
+        });
+
+        // Exit confirmation (Stop button flow)
+        safeBind('btn-cancel-exit', 'click', () => {
             document.getElementById('exit-overlay').classList.add('hidden');
-            if(document.getElementById('pause-overlay').classList.contains('hidden')) isPaused = false;
+            isPaused = false;
         });
-
-        document.getElementById('btn-confirm-exit').addEventListener('click', () => {
+        
+        safeBind('btn-confirm-exit', 'click', () => {
             document.getElementById('exit-overlay').classList.add('hidden');
             endGame();
         });
 
-        document.getElementById('btn-save-summary').addEventListener('click', () => {
-            if(pendingSessionData) {
-                try {
-                    const history = JSON.parse(localStorage.getItem('rehab_history') || '[]');
-                    history.push(pendingSessionData);
-                    localStorage.setItem('rehab_history', JSON.stringify(history));
-                } catch(e) { console.error("Save failed", e); }
-            }
-            document.getElementById('summary-overlay').classList.add('hidden');
-            stopCamera();
-            showScreen('dashboard');
-        });
-
-        document.getElementById('btn-discard-summary').addEventListener('click', () => {
-            pendingSessionData = null; 
-            document.getElementById('summary-overlay').classList.add('hidden');
-            stopCamera();
-            showScreen('dashboard');
-        });
+        safeBind('btn-settings', 'click', () => { loadSettings(); settingsOverlay.classList.remove('hidden'); });
+        safeBind('btn-cancel-settings', 'click', () => settingsOverlay.classList.add('hidden'));
+        safeBind('btn-save-settings', 'click', saveSettings);
         
-        window.addEventListener('resize', () => { if(isPlaying) resizeCanvas(); });
-        
-        // Init Voices on Load
-        window.speechSynthesis.onvoiceschanged = initVoices;
+        const holdSlider = document.getElementById('setting-hold');
+        if(holdSlider) holdSlider.addEventListener('input', (e) => document.getElementById('hold-val').innerText = (e.target.value/30).toFixed(1)+"s");
 
-        if(localStorage.getItem('rehab_history')) loadHistory();
-        loadSettings(); 
+        // --- INIT ---
+        loadSettings();
+        // REMOVED initPose() call to prevent blocking
 
     </script>
 </body>
